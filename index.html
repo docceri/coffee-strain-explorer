@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NEO-ARABICA | SECURE DATABASE</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Google Font: Rajdhani (Tech/Cyberpunk feel) -->
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --neon-cyan: #00f3ff;
+            --neon-pink: #ff0055;
+            --neon-purple: #bc13fe;
+            --neon-green: #0aff0a;
+            --bg-dark: #050505;
+            --glass-panel: rgba(15, 20, 25, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #e0e0e0;
+            --text-secondary: #8b9bb4;
+        }
+
+        /* Anti-Selection / Anti-Copy Hardening */
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: 'Rajdhani', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            margin: 0;
+            user-select: none; /* Prevents text selection */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        /* --- UTILS & SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--neon-cyan); }
+
+        .tech-font { font-family: 'Share Tech Mono', monospace; }
+        .text-cyan { color: var(--neon-cyan) !important; }
+        .text-pink { color: var(--neon-pink) !important; }
+        .text-gold { color: #ffd700 !important; }
+        
+        /* --- LAYOUT --- */
+        .app-container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+        }
+
+        /* --- SIDEBAR (Desktop Fixed / Mobile Offcanvas) --- */
+        .sidebar-area {
+            width: 380px;
+            background: var(--bg-dark);
+            border-right: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            z-index: 1045;
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+
+        /* --- MAP AREA --- */
+        .map-wrapper {
+            flex-grow: 1;
+            position: relative;
+            background: #000;
+        }
+
+        #map { height: 100%; width: 100%; z-index: 1; }
+
+        /* --- MAP ANIMATIONS --- */
+        .leaflet-interactive.path-animation {
+            stroke-dasharray: 2000;
+            stroke-dashoffset: 2000;
+            animation: drawPath 2s linear forwards;
+        }
+
+        @keyframes drawPath {
+            to { stroke-dashoffset: 0; }
+        }
+
+        /* --- UI COMPONENTS --- */
+        
+        /* Navbar/Header inside Sidebar */
+        .brand-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--glass-border);
+            background: linear-gradient(90deg, rgba(0,243,255,0.05) 0%, transparent 100%);
+        }
+
+        .logo-text {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(0,243,255,0.5);
+        }
+
+        /* Search Box & Toggle */
+        .controls-wrapper {
+            padding: 15px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .cyber-input {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--glass-border);
+            color: #fff;
+            border-radius: 4px;
+            padding-left: 40px;
+            transition: all 0.3s;
+        }
+        
+        .cyber-input:focus {
+            background: rgba(0,0,0,0.5);
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 15px rgba(0,243,255,0.2);
+            color: #fff;
+            outline: none;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            z-index: 5;
+        }
+
+        /* Cyber Switch */
+        .cyber-switch {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 4px;
+        }
+        
+        .form-check-input {
+            background-color: #333;
+            border-color: #666;
+            cursor: pointer;
+        }
+        .form-check-input:checked {
+            background-color: var(--neon-purple);
+            border-color: var(--neon-purple);
+            box-shadow: 0 0 10px var(--neon-purple);
+        }
+
+        /* Accordion List */
+        .strain-list-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 0;
+        }
+
+        .accordion-item {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+
+        .accordion-button {
+            background: transparent;
+            color: var(--text-primary);
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            padding: 15px 20px;
+        }
+
+        .accordion-button:not(.collapsed) {
+            background: rgba(0,243,255,0.1);
+            color: var(--neon-cyan);
+            box-shadow: inset 3px 0 0 var(--neon-cyan);
+        }
+        
+        .accordion-button:focus { box-shadow: none; }
+        .accordion-button::after { filter: invert(1); }
+
+        .list-group-item {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 10px 25px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+            border-left: 2px solid transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .list-group-item:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.05);
+            padding-left: 30px;
+        }
+
+        .list-group-item.active-strain {
+            background: linear-gradient(90deg, rgba(188,19,254,0.2) 0%, transparent 100%);
+            color: var(--neon-purple);
+            border-left: 2px solid var(--neon-purple);
+            animation: flashSelect 0.5s ease-out;
+        }
+
+        @keyframes flashSelect {
+            0% { background-color: var(--neon-purple); color: #000; }
+            100% { background-color: rgba(188,19,254,0.2); color: var(--neon-purple); }
+        }
+
+        /* --- FLOATING INFO CARD --- */
+        .info-card {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            width: 400px;
+            max-width: calc(100% - 40px);
+            background: var(--glass-panel);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-left: 4px solid var(--neon-cyan);
+            border-radius: 8px;
+            z-index: 1000;
+            padding: 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transform: translateY(120%);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-card.visible { transform: translateY(0); }
+
+        .card-header-custom {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+        }
+
+        .strain-title {
+            margin: 0;
+            font-size: 1.8rem;
+            line-height: 1;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: linear-gradient(45deg, #fff, #aaa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .strain-subtitle {
+            font-size: 0.8rem;
+            color: var(--neon-cyan);
+            letter-spacing: 1px;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .card-body-custom { padding: 20px; }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            font-size: 0.9rem;
+        }
+
+        .stat-explainer {
+            font-size: 0.7rem;
+            color: #666;
+            font-style: italic;
+            margin-bottom: 8px;
+            display: block;
+            margin-top: -2px;
+        }
+
+        .stat-label { color: var(--text-secondary); }
+        .stat-value { color: #fff; font-weight: 600; }
+
+        .progress-micro {
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+        .progress-bar-micro { height: 100%; box-shadow: 0 0 8px currentColor; }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        .close-btn:hover { color: #fff; }
+
+        /* --- MOBILE CONTROLS --- */
+        .mobile-nav-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 2000;
+            background: var(--glass-panel);
+            border: 1px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            width: 45px;
+            height: 45px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 15px rgba(0,243,255,0.2);
+        }
+
+        /* --- MAP STYLING --- */
+        .leaflet-tile { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
+        .leaflet-container { background: #0a0a0a; font-family: 'Rajdhani', sans-serif; }
+        
+        /* Custom Marker */
+        .marker-pin {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--neon-cyan);
+            box-shadow: 0 0 0 4px rgba(0, 243, 255, 0.2), 0 0 10px var(--neon-cyan);
+            transition: all 0.3s;
+        }
+
+        .pulse-ring {
+            border: 3px solid var(--neon-cyan);
+            border-radius: 50%;
+            height: 40px;
+            width: 40px;
+            position: absolute;
+            left: -14px;
+            top: -14px;
+            animation: pulsate 2s ease-out;
+            animation-iteration-count: infinite; 
+            opacity: 0;
+        }
+        
+        @keyframes pulsate {
+            0% { transform: scale(0.1, 0.1); opacity: 0.0; }
+            50% { opacity: 1.0; }
+            100% { transform: scale(1.2, 1.2); opacity: 0.0; }
+        }
+        
+        /* --- RESPONSIVE QUERIES --- */
+        @media (max-width: 768px) {
+            .sidebar-area {
+                position: fixed;
+                left: -100%;
+                height: 100%;
+                width: 85%;
+                max-width: 350px;
+                box-shadow: 10px 0 50px rgba(0,0,0,0.5);
+            }
+            .sidebar-area.active { left: 0; }
+            .mobile-nav-btn { display: flex; }
+            .info-card {
+                left: 20px;
+                right: 20px;
+                bottom: 20px;
+                width: auto;
+                max-width: none;
+            }
+            /* Reposition legend on mobile to avoid covering info card */
+            .map-legend-footer {
+                bottom: auto !important;
+                top: 25px;
+                right: 20px;
+                left: auto !important;
+                background: rgba(0,0,0,0.8) !important;
+            }
+        }
+
+        /* --- MAP LEGEND FOOTER --- */
+        .map-legend-footer {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            z-index: 400; /* Above map, below UI controls */
+            color: var(--text-secondary);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            padding: 8px 12px;
+            border-radius: 4px;
+            border-left: 2px solid var(--neon-cyan);
+            pointer-events: none; /* Allows clicking through to map */
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+<!-- Mobile Toggle Button -->
+<button class="mobile-nav-btn" onclick="toggleSidebar()">
+    <i class="bi bi-list" style="font-size: 1.5rem;"></i>
+</button>
+
+<div class="app-container">
+    
+    <!-- SIDEBAR -->
+    <div class="sidebar-area" id="sidebar">
+        <div class="brand-header d-flex justify-content-between align-items-center">
+            <div>
+                <div class="logo-text"><i class="bi bi-cpu text-cyan"></i> COFFEE STRAIN EXPLORER</div>
+                <div class="tech-font text-secondary" style="font-size: 0.7rem;">MAP VERSION 0.1 // ENCRYPTED</div>
+            </div>
+            <button class="btn btn-link text-secondary d-md-none" onclick="toggleSidebar()">
+                <i class="bi bi-x-lg" style="font-size: 1.5rem;"></i>
+            </button>
+        </div>
+
+        <div class="controls-wrapper">
+            <div class="position-relative mb-3">
+                <i class="bi bi-search search-icon"></i>
+                <input type="text" id="search" class="form-control cyber-input" placeholder="SEARCH ENCRYPTED DB..." onkeyup="handleInput()">
+            </div>
+
+            <!-- NEW FILTERS ROW -->
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <label class="tech-font text-secondary" style="font-size: 0.65rem;">CUP QUALITY</label>
+                    <select id="qualityFilter" class="form-select cyber-input" style="font-size: 0.8rem; padding: 5px 10px;" onchange="handleInput()">
+                        <option value="all">ANY TIER</option>
+                        <option value="90">EXQUISITE (90+)</option>
+                        <option value="85">EXCELLENT (85-89)</option>
+                        <option value="80">STANDARD (80-84)</option>
+                        <option value="low">COMMERCIAL (<80)</option>
+                    </select>
+                </div>
+                <div class="col-6">
+                    <label class="tech-font text-secondary" style="font-size: 0.65rem;">ALTITUDE</label>
+                    <select id="altFilter" class="form-select cyber-input" style="font-size: 0.8rem; padding: 5px 10px;" onchange="handleInput()">
+                        <option value="all">ANY ELEV.</option>
+                        <option value="very_high">V. HIGH (>1500m)</option>
+                        <option value="high">HIGH (1200-1500m)</option>
+                        <option value="med">MED (800-1200m)</option>
+                        <option value="low">LOW (<800m)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- CYBER SWITCH FOR VARIETIES -->
+            <div class="cyber-switch">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-diagram-3 text-secondary me-2"></i>
+                    <span style="font-size: 0.85rem; font-weight: 600;">SHOW RARE/REGIONAL</span>
+                </div>
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" id="accessionToggle" onchange="handleInput()">
+                </div>
+            </div>
+        </div>
+
+        <!-- ACCORDION LIST -->
+        <div class="strain-list-container custom-scroll">
+            <div class="accordion accordion-flush" id="strainAccordion">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- Footer Stats -->
+        <div class="p-3 border-top border-secondary border-opacity-10 tech-font" style="font-size: 0.7rem; color: #666;">
+            <div class="d-flex justify-content-between">
+                <span>SECURE RECORDS:</span>
+                <span id="total-count" class="text-cyan">0</span>
+            </div>
+            <div class="d-flex justify-content-between mt-1">
+                <span>VISIBLE:</span>
+                <span id="visible-count" class="text-white">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN MAP AREA -->
+    <div class="map-wrapper">
+        <div id="map"></div>
+
+        <!-- VISUAL LEGEND -->
+        <div class="map-legend-footer">
+            <span class="text-cyan">///</span> ANIMATED LINE INDICATES HISTORICAL MIGRATION PATH
+        </div>
+
+        <!-- FLOATING INFO CARD -->
+        <div class="info-card" id="infoCard">
+            <div class="card-header-custom">
+                <div>
+                    <h2 class="strain-title" id="card-title">Select Strain</h2>
+                    <span class="strain-subtitle tech-font" id="card-family">WAITING FOR INPUT...</span>
+                </div>
+                <button class="close-btn" onclick="closeCard()"><i class="bi bi-x-lg"></i></button>
+            </div>
+            
+            <div class="card-body-custom">
+                <p id="card-desc" style="color: #ccc; font-size: 0.95rem; line-height: 1.5;">
+                    Initialize selection from the sidebar to view genetic lineage, cup profile, and agronomic data.
+                </p>
+
+                <!-- Stats Grid -->
+                <div class="mt-4" id="card-stats" style="display: none;">
+                    
+                    <div class="stat-row">
+                        <span class="stat-label"><i class="bi bi-cup-hot me-2"></i>CUP QUALITY</span>
+                        <span class="stat-value text-cyan" id="stat-quality">HIGH</span>
+                    </div>
+                    <div class="stat-explainer">Potential score on SCA 100pt scale.</div>
+                    <div class="progress-micro">
+                        <div class="progress-bar-micro" id="bar-quality" style="width: 0%; background-color: var(--neon-cyan);"></div>
+                    </div>
+
+                    <!-- Market Volume -->
+                    <div class="stat-row">
+                        <span class="stat-label"><i class="bi bi-globe-americas me-2"></i>GLOBAL SHARE</span>
+                        <span class="stat-value text-gold" id="stat-market">NICHE</span>
+                    </div>
+                    <div class="stat-explainer">Estimated % of global coffee trade.</div>
+                    <div class="progress-micro">
+                        <div class="progress-bar-micro" id="bar-market" style="width: 0%; background-color: #ffd700;"></div>
+                    </div>
+
+                    <div class="stat-row">
+                        <span class="stat-label"><i class="bi bi-shield-check me-2"></i>CLR IMMUNITY</span>
+                        <span class="stat-value text-pink" id="stat-resistance">LOW</span>
+                    </div>
+                    <div class="stat-explainer">Resistance to Hemileia vastatrix fungus.</div>
+                    <div class="progress-micro">
+                        <div class="progress-bar-micro" id="bar-resistance" style="width: 0%; background-color: var(--neon-pink);"></div>
+                    </div>
+
+                    <div class="row mt-3 g-2">
+                        <div class="col-6">
+                            <div class="p-2 rounded" style="background: rgba(255,255,255,0.05);">
+                                <div class="stat-label" style="font-size: 0.7rem;">OPTIMAL ALTITUDE</div>
+                                <div class="text-white tech-font" id="stat-alt">1200m+</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2 rounded" style="background: rgba(255,255,255,0.05);">
+                                <div class="stat-label" style="font-size: 0.7rem;">YIELD POTENTIAL</div>
+                                <div class="text-white tech-font" id="stat-yield">MEDIUM</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPTS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    /* --- SECURITY PROTOCOL --- 
+       Disabling Common Inspection Hotkeys 
+    */
+    document.onkeydown = function(e) {
+        if(e.keyCode == 123) { return false; } // F12
+        if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)){ return false; } // Ctrl+Shift+I
+        if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)){ return false; } // Ctrl+Shift+J
+        if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)){ return false; } // Ctrl+U
+    }
+
+    const coords = {
+        "Ethiopia": [9.145, 40.489], "Yemen": [15.552, 48.516], "India": [13.5, 75.5],
+        "Java": [-7.614, 110.712], "Reunion": [-21.115, 55.536], "Amsterdam": [52.367, 4.904],
+        "Martinique": [14.641, -61.024], "Brazil": [-22.906, -47.061], "Colombia": [4.570, -75.697],
+        "Kenya": [-0.023, 37.906], "Panama": [8.780, -82.441], "Vietnam": [14.058, 108.277],
+        "Jamaica": [18.109, -76.796], "Hawaii": [19.542, -155.665], "Timor": [-8.874, 125.727],
+        "Costa Rica": [9.928, -84.090], "El Salvador": [13.794, -88.896], "Rwanda": [-1.940, 29.873],
+        "Mexico": [16.737, -96.727], "Uganda": [1.373, 32.290], "Honduras": [15.199, -86.241],
+        "Guatemala": [15.783, -90.230], "Tanzania": [-6.369, 34.888], "Malawi": [-13.254, 34.301],
+        "Sudan": [6.877, 35.111], "Portugal": [38.722, -9.139], "Indonesia": [-0.789, 113.921],
+        "Nicaragua": [12.865, -85.207], "Ecuador": [-1.831, -78.183]
+    };
+
+    const families = {
+        "Typica": { color: "#ff0055", id: "typica" },
+        "Bourbon": { color: "#00f3ff", id: "bourbon" },
+        "Ethiopian": { color: "#bc13fe", id: "ethiopian" },
+        "Hybrid": { color: "#0aff0a", id: "hybrid" }
+    };
+
+    /* --- DATA OBFUSCATION LAYER ---
+       Data is stored as a packed matrix to prevent casual reading/copying.
+       Structure: [name, family, isMain(0/1), loc, path(piped), desc, quality, resistance, market, alt, yield]
+    */
+    const _0xGenPool = [
+        ["Typica","Typica",1,"Global","Ethiopia|Yemen|India|Java|Amsterdam|Martinique|Colombia","The original Arabica stock found in the Americas. Low yield, high quality.",90,10,60,"1000m+","Low"],
+        ["Blue Mountain","Typica",1,"Jamaica","Ethiopia|Yemen|Martinique|Jamaica","Thrives in Jamaica's mist. Mild, lack of bitterness.",88,15,20,"1000m+","Low"],
+        ["Kona","Typica",1,"Hawaii","Ethiopia|Brazil|Hawaii","Typica variety adapted to volcanic soil of Hawaii.",85,15,20,"600m+","Low"],
+        ["Maragogype","Typica",1,"Brazil","Brazil","The 'Elephant Bean' mutation. Huge beans, porous cup.",84,10,30,"800m+","Very Low"],
+        ["Mundo Novo","Typica",1,"Brazil","Brazil","Natural cross Typica x Bourbon. Vigorous and productive.",82,30,85,"1000m+","High"],
+        ["Java","Typica",0,"Indonesia","Ethiopia|Java|Cameroon","Ethiopian selection moved to Java. Elongated beans.",86,50,15,"1000m+","Medium"],
+        ["Pache","Typica",0,"Guatemala","Guatemala","Dwarf mutation of Typica discovered in Guatemala.",82,10,25,"1200m+","Medium"],
+        ["Pluma Hidalgo","Typica",0,"Mexico","Mexico","Distinct Typica lineage grown in Oaxaca, Mexico.",85,10,10,"1200m+","Medium"],
+        ["Villalobos","Typica",0,"Costa Rica","Costa Rica","Typica mutation favored for fine acidity.",87,10,10,"1400m+","Low"],
+        ["Maracaturra","Typica",0,"Nicaragua","Brazil|Nicaragua","Cross of Maragogype x Caturra found in Nicaragua.",88,15,20,"1200m+","Medium"],
+        ["Garnica","Typica",0,"Mexico","Brazil|Mexico","Mexican cross between Mundo Novo and Caturra.",78,20,15,"900m+","High"],
+        ["Kent","Typica",0,"India","India","Selection of Typica with some rust resistance.",80,40,40,"1000m","High"],
+        ["Bourbon","Bourbon",1,"Global","Ethiopia|Yemen|Reunion|Brazil","Prized for complex acidity and balance. Sweet.",88,15,70,"1100m+","Medium"],
+        ["Caturra","Bourbon",1,"Brazil","Brazil","Dwarf Bourbon mutation. Standard for high density.",85,20,90,"1000m+","High"],
+        ["Catuai","Bourbon",1,"Brazil","Brazil","Mundo Novo x Caturra. Extremely common, reliable.",83,25,95,"1000m+","High"],
+        ["SL-28","Bourbon",1,"Kenya","Ethiopia|Kenya","Famous for intense blackcurrant acidity.",95,40,40,"1500m+","Medium"],
+        ["SL-34","Bourbon",0,"Kenya","Ethiopia|Kenya","Scott Labs selection, adapted to high altitudes.",92,30,35,"1500m+","High"],
+        ["Sidra","Bourbon",0,"Ecuador","Ethiopia|Ecuador","Hybrid of Bourbon and Typica. Silky body.",93,20,5,"1500m+","Medium"],
+        ["Pacas","Bourbon",0,"El Salvador","El Salvador","Natural dwarf Bourbon mutation.",84,15,40,"1000m+","High"],
+        ["Pacamara","Bourbon",1,"El Salvador","El Salvador","Hybrid of Pacas and Maragogype. Massive beans.",92,30,25,"1200m+","Medium"],
+        ["Villa Sarchi","Bourbon",0,"Costa Rica","Costa Rica","Dwarf Bourbon mutation found in Costa Rica.",86,15,20,"1200m+","Medium"],
+        ["Tekisic","Bourbon",0,"El Salvador","El Salvador","Improved Bourbon selection.",87,15,15,"1000m+","Low"],
+        ["Yellow Bourbon","Bourbon",0,"Brazil","Brazil","Cherries ripen to yellow. Sweeter.",89,15,30,"1100m+","Medium"],
+        ["Pink Bourbon","Bourbon",1,"Colombia","Colombia","Rare recessive gene. Pink cherries, floral cup.",91,25,10,"1500m+","Medium"],
+        ["Laurina (Pointu)","Bourbon",0,"Reunion","Reunion","Naturally low caffeine content. Pointy beans.",88,5,5,"800m+","Very Low"],
+        ["Mokka","Bourbon",0,"Hawaii","Yemen|Brazil|Hawaii","Tiny round beans, distinct chocolate notes.",85,10,5,"Low","Very Low"],
+        ["Jackson","Bourbon",0,"Rwanda","India|Kenya|Rwanda","Related to Bourbon, found in Rwanda/Burundi.",86,30,10,"1400m+","Medium"],
+        ["Mibirizi","Bourbon",0,"Rwanda","Rwanda","Oldest variety in Rwanda. Adapted to terroir.",85,25,10,"1400m+","Low"],
+        ["Geisha (Gesha)","Ethiopian",1,"Panama","Ethiopia|Kenya|Costa Rica|Panama","The champion. Floral, jasmine, tea-like.",100,20,5,"1500m+","Low"],
+        ["Wush Wush","Ethiopian",1,"Colombia","Ethiopia|Colombia","Extremely fruity, boozy, and funky profile.",94,40,5,"1500m+","Low"],
+        ["Chiroso","Ethiopian",0,"Colombia","Ethiopia|Colombia","Floral, complex profile rivaling Geisha.",93,30,5,"1800m+","Medium"],
+        ["Harrar","Ethiopian",0,"Ethiopia","Ethiopia","Wild, gamey, blueberry, wine-like profile.",90,60,15,"1500m+","Medium"],
+        ["Sudan Rume","Ethiopian",0,"Sudan","Ethiopia|Sudan","Wild variety. Amazing quality, low yield.",96,50,2,"1700m+","Very Low"],
+        ["JARC 74110","Ethiopian",0,"Ethiopia","Ethiopia","1974 selection. Floral/Citrus.",92,80,10,"1500m+","Medium"],
+        ["JARC 74112","Ethiopian",0,"Ethiopia","Ethiopia","1974 selection. Small dense beans.",91,80,10,"1500m+","Medium"],
+        ["Kurume","Ethiopian",0,"Ethiopia","Ethiopia","Landrace common in Yirgacheffe.",90,60,20,"1800m+","Medium"],
+        ["Wolisho","Ethiopian",0,"Ethiopia","Ethiopia","Highland landrace with large beans.",88,60,20,"1800m+","High"],
+        ["Castillo","Hybrid",1,"Colombia","Colombia","The backbone of Colombian coffee. Rust resistant.",78,95,80,"1000m+","Very High"],
+        ["Colombia","Hybrid",0,"Colombia","Colombia","Predecessor to Castillo.",75,90,40,"1000m+","High"],
+        ["Tabi","Hybrid",0,"Colombia","Colombia","Tall cross of Typica, Bourbon, Timor.",88,80,20,"1200m+","Medium"],
+        ["Ruiru 11","Hybrid",0,"Kenya","Kenya","Compact dwarf hybrid. Disease resistant.",75,95,30,"1500m+","High"],
+        ["Batian","Hybrid",0,"Kenya","Kenya","Modern Kenyan variety. Rust resistant.",85,90,15,"1500m+","High"],
+        ["Catimor 129","Hybrid",0,"Malawi","Timor|Kenya|Malawi","Standard Catimor used in Africa.",65,90,50,"600m+","High"],
+        ["Costa Rica 95","Hybrid",0,"Costa Rica","Costa Rica","Catimor selection known for high yields.",70,90,60,"800m+","High"],
+        ["Marsellesa","Hybrid",0,"Nicaragua","Nicaragua","Sarchimor offering decent cup.",78,90,40,"800m+","High"],
+        ["Parainema","Hybrid",0,"Honduras","Honduras","Sarchimor, Nematode resistant.",80,85,40,"800m+","Medium"],
+        ["Obata","Hybrid",0,"Brazil","Brazil","Sarchimor selection from Brazil.",76,90,50,"800m+","High"],
+        ["Catigua MG2","Hybrid",0,"Brazil","Brazil","Cross between Catuai and Timor.",82,85,20,"900m+","High"],
+        ["Icatu","Hybrid",0,"Brazil","Brazil","Advanced backcross involving Robusta.",78,80,50,"800m+","High"],
+        ["Rasuna","Hybrid",0,"Indonesia","Indonesia","Catimor x Typica found in Sumatra.",75,70,40,"1000m","High"],
+        ["S795","Hybrid",0,"India","India","Cross of Kent and S288.",78,60,50,"800m+","High"]
+    ];
+
+    // --- DECODER & AI DATA INJECTION ---
+    let db = [];
+    
+    function unpackMatrix() {
+        db = _0xGenPool.map(r => ({
+            name: r[0], family: r[1], isMain: r[2]===1, loc: r[3],
+            path: r[4].split('|'), desc: r[5],
+            stats: { quality: r[6], resistance: r[7], market_vol: r[8], alt: r[9], yield: r[10] }
+        }));
+        // Sort
+        db.sort((a,b) => a.name.localeCompare(b.name));
+        injectMetadata(); // Make AI Readable
+    }
+
+    function injectMetadata() {
+        // Generates JSON-LD for AI Agents / Search Engines
+        const ld = {
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            "itemListElement": db.map((s, i) => ({
+                "@type": "ListItem",
+                "position": i + 1,
+                "item": {
+                    "@type": "Product",
+                    "name": s.name,
+                    "category": "Coffee Variety",
+                    "description": s.desc,
+                    "countryOfOrigin": s.loc
+                }
+            }))
+        };
+        const script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.text = JSON.stringify(ld);
+        document.head.appendChild(script);
+        console.log("NEO-ARABICA: AI Protocols Initialized.");
+    }
+
+    // --- 3. UI LOGIC ---
+
+    function buildAccordion(strainsToRender) {
+        const container = document.getElementById('strainAccordion');
+        container.innerHTML = "";
+        
+        // Group data
+        const grouped = { "Typica": [], "Bourbon": [], "Ethiopian": [], "Hybrid": [] };
+        strainsToRender.forEach(s => { if(grouped[s.family]) grouped[s.family].push(s); });
+
+        for (let [famName, items] of Object.entries(grouped)) {
+            if (items.length === 0) continue;
+            
+            const color = families[famName].color;
+            const id = families[famName].id;
+            
+            const itemHTML = `
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${id}" style="border-left: 4px solid ${color}">
+                            ${famName} FAMILY <span class="ms-auto badge rounded-pill bg-dark text-secondary tech-font" style="font-size: 0.7rem">${items.length}</span>
+                        </button>
+                    </h2>
+                    <div id="collapse${id}" class="accordion-collapse collapse" data-bs-parent="#strainAccordion">
+                        <div class="accordion-body p-0">
+                            <div class="list-group list-group-flush">
+                                ${items.map(strain => `
+                                    <button class="list-group-item list-group-item-action tech-font strain-btn" 
+                                            onclick="selectStrain('${strain.name}')">
+                                        <span>${strain.name}</span>
+                                        ${!strain.isMain ? '<i class="bi bi-gem" style="color: var(--neon-pink); font-size:0.7rem" title="Rare/Regional"></i>' : ''}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', itemHTML);
+        }
+        
+        document.getElementById('visible-count').innerText = strainsToRender.length;
+    }
+
+    function parseAlt(altStr) {
+        // Helper to convert "1500m+" or "Low" to a comparable number
+        if (!altStr) return 0;
+        if (altStr.includes("Low") || altStr.includes("Very Low")) return 500;
+        return parseInt(altStr) || 0;
+    }
+
+    function handleInput() {
+        const term = document.getElementById('search').value.toLowerCase();
+        const showExtended = document.getElementById('accessionToggle').checked;
+        const qualityFilter = document.getElementById('qualityFilter').value;
+        const altFilter = document.getElementById('altFilter').value;
+
+        const filtered = db.filter(s => {
+            // 1. Text Search
+            const matchesSearch = s.name.toLowerCase().includes(term);
+            
+            // 2. Rare Toggle
+            const matchesToggle = showExtended ? true : s.isMain;
+
+            // 3. Quality Filter
+            let matchesQuality = true;
+            if (qualityFilter !== 'all') {
+                const q = s.stats.quality;
+                if (qualityFilter === '90') matchesQuality = q >= 90;
+                else if (qualityFilter === '85') matchesQuality = q >= 85 && q < 90;
+                else if (qualityFilter === '80') matchesQuality = q >= 80 && q < 85;
+                else if (qualityFilter === 'low') matchesQuality = q < 80;
+            }
+
+            // 4. Altitude Filter
+            let matchesAlt = true;
+            if (altFilter !== 'all') {
+                const a = parseAlt(s.stats.alt);
+                if (altFilter === 'very_high') matchesAlt = a >= 1500;
+                else if (altFilter === 'high') matchesAlt = a >= 1200 && a < 1500;
+                else if (altFilter === 'med') matchesAlt = a >= 800 && a < 1200;
+                else if (altFilter === 'low') matchesAlt = a < 800;
+            }
+
+            return matchesSearch && matchesToggle && matchesQuality && matchesAlt;
+        });
+
+        buildAccordion(filtered);
+
+        if (term.length > 0 || filtered.length < 15) {
+             setTimeout(() => {
+                document.querySelectorAll('.accordion-collapse').forEach(el => {
+                    new bootstrap.Collapse(el, { toggle: true });
+                });
+            }, 100);
+        }
+    }
+
+    // --- 4. MAP LOGIC ---
+    const map = L.map('map', {
+        zoomControl: false,
+        attributionControl: false
+    }).setView([20, 0], 2);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19
+    }).addTo(map);
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+    const layers = {
+        path: L.layerGroup().addTo(map),
+        markers: L.layerGroup().addTo(map)
+    };
+
+    function selectStrain(name) {
+        const strain = db.find(s => s.name === name);
+        if(!strain) return;
+
+        const sidebar = document.getElementById('sidebar');
+        if(window.innerWidth < 768 && sidebar.classList.contains('active')) {
+            toggleSidebar();
+        }
+        
+        document.querySelectorAll('.strain-btn').forEach(b => b.classList.remove('active-strain'));
+        const btns = document.getElementsByTagName('button');
+        for(let btn of btns) {
+            if(btn.innerText.includes(name)) {
+                btn.classList.add('active-strain');
+                break;
+            }
+        }
+
+        layers.path.clearLayers();
+        layers.markers.clearLayers();
+
+        const color = families[strain.family].color;
+        const latlngs = [];
+
+        strain.path.forEach((locName, index) => {
+            let c = coords[locName] || coords["Ethiopia"];
+            latlngs.push(c);
+            const isLast = index === strain.path.length - 1;
+
+            let markerHtml = `<div class="marker-pin" style="background: ${color}; box-shadow: 0 0 10px ${color}"></div>`;
+            if(isLast) {
+                 markerHtml += `<div class="pulse-ring" style="border-color: ${color}"></div>`;
+            }
+
+            const icon = L.divIcon({ 
+                className: 'custom-div-icon', 
+                html: markerHtml, 
+                iconSize: [12, 12], 
+                iconAnchor: [6, 6] 
+            });
+            
+            setTimeout(() => {
+                L.marker(c, {icon: icon}).addTo(layers.markers)
+                 .bindTooltip(locName, { direction: 'top', offset: [0, -10], className: 'tech-font' });
+            }, index * 300);
+        });
+
+        const polyline = L.polyline(latlngs, {
+            color: color,
+            weight: 3,
+            opacity: 0.8,
+            dashArray: '5, 10',
+            className: 'path-animation'
+        }).addTo(layers.path);
+        
+        const pathEl = polyline.getElement();
+        if(pathEl) {
+            pathEl.classList.remove('path-animation');
+            void pathEl.offsetWidth;
+            pathEl.classList.add('path-animation');
+        }
+
+        if(latlngs.length > 0) {
+            map.flyToBounds(polyline.getBounds(), { 
+                paddingTopLeft: [50, 50],
+                paddingBottomRight: [50, 350],
+                maxZoom: 5, 
+                duration: 1.5 
+            });
+        }
+
+        showCard(strain);
+    }
+
+    function showCard(strain) {
+        const card = document.getElementById('infoCard');
+        const statsDiv = document.getElementById('card-stats');
+        const color = families[strain.family].color;
+
+        document.getElementById('card-title').innerText = strain.name;
+        document.getElementById('card-family').innerText = `${strain.family} FAMILY`;
+        document.getElementById('card-family').style.color = color;
+        document.getElementById('card-desc').innerText = strain.desc;
+        
+        statsDiv.style.display = 'block';
+        document.getElementById('stat-quality').innerText = strain.stats.quality + "/100";
+        document.getElementById('bar-quality').style.width = strain.stats.quality + "%";
+        
+        const mktVal = strain.stats.market_vol;
+        let mktText = "NICHE";
+        if (mktVal > 80) mktText = "COMMODITY (HUGE)";
+        else if (mktVal > 50) mktText = "HIGH VOLUME";
+        else if (mktVal > 20) mktText = "MODERATE";
+        else if (mktVal > 5) mktText = "SPECIALTY MICRO";
+        else mktText = "RARE NANO-LOT";
+
+        document.getElementById('stat-market').innerText = mktText;
+        document.getElementById('bar-market').style.width = mktVal + "%";
+
+        const resVal = strain.stats.resistance;
+        let resText = "SUSCEPTIBLE";
+        if (resVal > 90) resText = "IMMUNE";
+        else if (resVal > 70) resText = "HIGHLY RESISTANT";
+        else if (resVal > 40) resText = "TOLERANT";
+        
+        document.getElementById('stat-resistance').innerText = resText;
+        document.getElementById('bar-resistance').style.width = resVal + "%";
+
+        document.getElementById('stat-alt').innerText = strain.stats.alt;
+        document.getElementById('stat-yield').innerText = strain.stats.yield;
+
+        card.classList.add('visible');
+        card.style.borderLeftColor = color;
+    }
+
+    function closeCard() {
+        document.getElementById('infoCard').classList.remove('visible');
+    }
+
+    function toggleSidebar() {
+        const sb = document.getElementById('sidebar');
+        sb.classList.toggle('active');
+        setTimeout(() => { map.invalidateSize(); }, 350);
+    }
+
+    // Initialization
+    unpackMatrix(); // Decrypt/Unpack Data
+    document.getElementById('total-count').innerText = db.length;
+    handleInput();
+    setTimeout(() => selectStrain("Geisha (Gesha)"), 1000);
+
+</script>
+</body>
+</html>
