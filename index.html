@@ -21,7 +21,7 @@
             --neon-purple: #bc13fe;
             --neon-green: #0aff0a;
             --bg-dark: #050505;
-            --glass-panel: rgba(15, 20, 25, 0.85);
+            --glass-panel: rgba(15, 20, 25, 0.9);
             --glass-border: rgba(255, 255, 255, 0.1);
             --text-primary: #e0e0e0;
             --text-secondary: #8b9bb4;
@@ -35,18 +35,15 @@
             height: 100vh;
             overflow: hidden;
             margin: 0;
-            user-select: none; /* Prevents text selection */
+            user-select: none;
             -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
         }
 
-        /* --- UTILS & SCROLLBAR --- */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        /* --- UTILS --- */
+        ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--neon-cyan); }
-
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+        
         .tech-font { font-family: 'Share Tech Mono', monospace; }
         .text-cyan { color: var(--neon-cyan) !important; }
         .text-pink { color: var(--neon-pink) !important; }
@@ -60,16 +57,16 @@
             position: relative;
         }
 
-        /* --- SIDEBAR (Desktop Fixed / Mobile Offcanvas) --- */
+        /* --- SIDEBAR --- */
         .sidebar-area {
             width: 380px;
             background: var(--bg-dark);
             border-right: 1px solid var(--glass-border);
             display: flex;
             flex-direction: column;
-            z-index: 1045;
+            z-index: 2000; /* Higher than map controls */
             flex-shrink: 0;
-            transition: transform 0.3s ease;
+            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
         }
 
         /* --- MAP AREA --- */
@@ -81,11 +78,11 @@
 
         #map { height: 100%; width: 100%; z-index: 1; }
 
-        /* --- MAP ANIMATIONS --- */
+        /* Animation for Path */
         .leaflet-interactive.path-animation {
             stroke-dasharray: 2000;
             stroke-dashoffset: 2000;
-            animation: drawPath 2s linear forwards;
+            animation: drawPath 2.5s ease-out forwards;
         }
 
         @keyframes drawPath {
@@ -93,24 +90,24 @@
         }
 
         /* --- UI COMPONENTS --- */
-        
-        /* Navbar/Header inside Sidebar */
         .brand-header {
             padding: 20px;
             border-bottom: 1px solid var(--glass-border);
             background: linear-gradient(90deg, rgba(0,243,255,0.05) 0%, transparent 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .logo-text {
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             font-weight: 700;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
             text-transform: uppercase;
             color: #fff;
-            text-shadow: 0 0 10px rgba(0,243,255,0.5);
+            text-shadow: 0 0 15px rgba(0,243,255,0.3);
         }
 
-        /* Search Box & Toggle */
         .controls-wrapper {
             padding: 15px;
             border-bottom: 1px solid var(--glass-border);
@@ -121,61 +118,39 @@
             border: 1px solid var(--glass-border);
             color: #fff;
             border-radius: 4px;
-            padding-left: 40px;
-            transition: all 0.3s;
+            padding-left: 35px;
+            font-size: 0.9rem;
         }
         
         .cyber-input:focus {
             background: rgba(0,0,0,0.5);
             border-color: var(--neon-cyan);
-            box-shadow: 0 0 15px rgba(0,243,255,0.2);
+            box-shadow: 0 0 10px rgba(0,243,255,0.2);
             color: #fff;
             outline: none;
         }
-        
-        .search-icon {
-            position: absolute;
-            left: 25px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-secondary);
-            z-index: 5;
-        }
 
-        /* Cyber Switch */
         .cyber-switch {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-top: 15px;
-            padding: 10px;
-            background: rgba(0,0,0,0.3);
+            padding: 12px;
+            background: rgba(255,255,255,0.03);
             border: 1px solid var(--glass-border);
             border-radius: 4px;
         }
         
-        .form-check-input {
-            background-color: #333;
-            border-color: #666;
-            cursor: pointer;
-        }
         .form-check-input:checked {
             background-color: var(--neon-purple);
             border-color: var(--neon-purple);
             box-shadow: 0 0 10px var(--neon-purple);
         }
 
-        /* Accordion List */
         .strain-list-container {
             flex-grow: 1;
             overflow-y: auto;
-            padding: 0;
-        }
-
-        .accordion-item {
-            background: transparent;
-            border: none;
-            border-bottom: 1px solid rgba(255,255,255,0.03);
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
         }
 
         .accordion-button {
@@ -184,69 +159,50 @@
             font-family: 'Rajdhani', sans-serif;
             font-weight: 600;
             font-size: 1.1rem;
-            text-transform: uppercase;
             padding: 15px 20px;
         }
-
+        
         .accordion-button:not(.collapsed) {
-            background: rgba(0,243,255,0.1);
+            background: rgba(0,243,255,0.05);
             color: var(--neon-cyan);
             box-shadow: inset 3px 0 0 var(--neon-cyan);
         }
-        
-        .accordion-button:focus { box-shadow: none; }
-        .accordion-button::after { filter: invert(1); }
 
         .list-group-item {
             background: transparent;
             border: none;
             color: var(--text-secondary);
-            padding: 10px 25px;
+            padding: 14px 25px; /* Larger touch target */
             cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.95rem;
             border-left: 2px solid transparent;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .list-group-item:hover {
-            color: #fff;
-            background: rgba(255,255,255,0.05);
-            padding-left: 30px;
-        }
-
         .list-group-item.active-strain {
-            background: linear-gradient(90deg, rgba(188,19,254,0.2) 0%, transparent 100%);
+            background: linear-gradient(90deg, rgba(188,19,254,0.15) 0%, transparent 100%);
             color: var(--neon-purple);
             border-left: 2px solid var(--neon-purple);
-            animation: flashSelect 0.5s ease-out;
         }
 
-        @keyframes flashSelect {
-            0% { background-color: var(--neon-purple); color: #000; }
-            100% { background-color: rgba(188,19,254,0.2); color: var(--neon-purple); }
-        }
-
-        /* --- FLOATING INFO CARD --- */
+        /* --- FLOATING INFO CARD (Desktop Default) --- */
         .info-card {
             position: absolute;
             bottom: 30px;
             right: 30px;
-            width: 400px;
-            max-width: calc(100% - 40px);
+            width: 380px;
             background: var(--glass-panel);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--glass-border);
             border-left: 4px solid var(--neon-cyan);
             border-radius: 8px;
             z-index: 1000;
             padding: 0;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
             transform: translateY(120%);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
             display: flex;
             flex-direction: column;
         }
@@ -272,35 +228,6 @@
             -webkit-text-fill-color: transparent;
         }
 
-        .strain-subtitle {
-            font-size: 0.8rem;
-            color: var(--neon-cyan);
-            letter-spacing: 1px;
-            margin-top: 5px;
-            display: block;
-        }
-
-        .card-body-custom { padding: 20px; }
-
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 4px;
-            font-size: 0.9rem;
-        }
-
-        .stat-explainer {
-            font-size: 0.7rem;
-            color: #666;
-            font-style: italic;
-            margin-bottom: 8px;
-            display: block;
-            margin-top: -2px;
-        }
-
-        .stat-label { color: var(--text-secondary); }
-        .stat-value { color: #fff; font-weight: 600; }
-
         .progress-micro {
             height: 4px;
             background: rgba(255,255,255,0.1);
@@ -310,112 +237,131 @@
         }
         .progress-bar-micro { height: 100%; box-shadow: 0 0 8px currentColor; }
 
-        .close-btn {
-            background: none;
-            border: none;
+        /* --- LEGEND --- */
+        .map-legend-footer {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            z-index: 900;
             color: var(--text-secondary);
-            cursor: pointer;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.7rem;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            padding: 8px 12px;
+            border-radius: 4px;
+            border-left: 2px solid var(--neon-cyan);
+            pointer-events: none;
         }
-        .close-btn:hover { color: #fff; }
 
-        /* --- MOBILE CONTROLS --- */
         .mobile-nav-btn {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 2000;
-            background: var(--glass-panel);
+            top: 15px;
+            left: 15px;
+            z-index: 3000;
+            background: rgba(0,0,0,0.8);
             border: 1px solid var(--neon-cyan);
             color: var(--neon-cyan);
-            width: 45px;
-            height: 45px;
+            width: 48px;
+            height: 48px;
             display: none;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
-            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            backdrop-filter: blur(4px);
             box-shadow: 0 0 15px rgba(0,243,255,0.2);
         }
 
-        /* --- MAP STYLING --- */
-        .leaflet-tile { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
-        .leaflet-container { background: #0a0a0a; font-family: 'Rajdhani', sans-serif; }
+        /* --- MOBILE OPTIMIZATION --- */
+        @media (max-width: 768px) {
+            .sidebar-area {
+                position: fixed;
+                left: -100%;
+                height: 100%;
+                width: 100%; /* Full width on mobile for clarity */
+                background: #000; /* Solid background for legibility */
+            }
+            
+            .sidebar-area.active { left: 0; }
+            .mobile-nav-btn { display: flex; }
+            
+            /* Bottom Sheet Transformation */
+            .info-card {
+                left: 0;
+                right: 0;
+                bottom: 0;
+                width: 100%;
+                max-width: 100%;
+                border-radius: 20px 20px 0 0;
+                border: 1px solid var(--glass-border);
+                border-top: 4px solid var(--neon-cyan);
+                border-left: none; /* Remove side border */
+                border-bottom: none;
+                transform: translateY(100%);
+                padding-bottom: 20px; /* Safe area for swipe bar */
+                margin: 0;
+            }
+
+            .info-card.visible {
+                transform: translateY(0);
+            }
+
+            /* Adjust Header in Card for drag handle look */
+            .card-header-custom::before {
+                content: '';
+                position: absolute;
+                top: 8px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 40px;
+                height: 4px;
+                background: rgba(255,255,255,0.2);
+                border-radius: 2px;
+            }
+
+            /* Reposition Legend */
+            .map-legend-footer {
+                top: 80px; /* Below Nav button */
+                right: 15px;
+                left: auto !important;
+                bottom: auto !important;
+                text-align: right;
+                border-left: none;
+                border-right: 2px solid var(--neon-cyan);
+            }
+
+            /* Adjust Leaflet Controls */
+            .leaflet-control-zoom {
+                display: none; /* Pinch zoom is better on mobile */
+            }
+        }
         
-        /* Custom Marker */
+        /* Map Markers */
         .marker-pin {
             width: 12px;
             height: 12px;
             border-radius: 50%;
             background: var(--neon-cyan);
-            box-shadow: 0 0 0 4px rgba(0, 243, 255, 0.2), 0 0 10px var(--neon-cyan);
+            box-shadow: 0 0 0 3px rgba(0, 243, 255, 0.3);
             transition: all 0.3s;
         }
 
         .pulse-ring {
-            border: 3px solid var(--neon-cyan);
+            border: 2px solid var(--neon-cyan);
             border-radius: 50%;
             height: 40px;
             width: 40px;
             position: absolute;
             left: -14px;
             top: -14px;
-            animation: pulsate 2s ease-out;
-            animation-iteration-count: infinite; 
+            animation: pulsate 2s ease-out infinite;
             opacity: 0;
         }
         
         @keyframes pulsate {
-            0% { transform: scale(0.1, 0.1); opacity: 0.0; }
+            0% { transform: scale(0.1); opacity: 0.0; }
             50% { opacity: 1.0; }
-            100% { transform: scale(1.2, 1.2); opacity: 0.0; }
-        }
-        
-        /* --- RESPONSIVE QUERIES --- */
-        @media (max-width: 768px) {
-            .sidebar-area {
-                position: fixed;
-                left: -100%;
-                height: 100%;
-                width: 85%;
-                max-width: 350px;
-                box-shadow: 10px 0 50px rgba(0,0,0,0.5);
-            }
-            .sidebar-area.active { left: 0; }
-            .mobile-nav-btn { display: flex; }
-            .info-card {
-                left: 20px;
-                right: 20px;
-                bottom: 20px;
-                width: auto;
-                max-width: none;
-            }
-            /* Reposition legend on mobile to avoid covering info card */
-            .map-legend-footer {
-                bottom: auto !important;
-                top: 25px;
-                right: 20px;
-                left: auto !important;
-                background: rgba(0,0,0,0.8) !important;
-            }
-        }
-
-        /* --- MAP LEGEND FOOTER --- */
-        .map-legend-footer {
-            position: absolute;
-            bottom: 30px;
-            left: 30px;
-            z-index: 400; /* Above map, below UI controls */
-            color: var(--text-secondary);
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 0.7rem;
-            letter-spacing: 1px;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(4px);
-            padding: 8px 12px;
-            border-radius: 4px;
-            border-left: 2px solid var(--neon-cyan);
-            pointer-events: none; /* Allows clicking through to map */
-            text-transform: uppercase;
+            100% { transform: scale(1.2); opacity: 0.0; }
         }
     </style>
 </head>
@@ -423,34 +369,34 @@
 
 <!-- Mobile Toggle Button -->
 <button class="mobile-nav-btn" onclick="toggleSidebar()">
-    <i class="bi bi-list" style="font-size: 1.5rem;"></i>
+    <i class="bi bi-list" style="font-size: 1.8rem;"></i>
 </button>
 
 <div class="app-container">
     
     <!-- SIDEBAR -->
     <div class="sidebar-area" id="sidebar">
-        <div class="brand-header d-flex justify-content-between align-items-center">
+        <div class="brand-header">
             <div>
-                <div class="logo-text"><i class="bi bi-cpu text-cyan"></i> ARABICA COFFEE EXPLORER</div>
+                <div class="logo-text"><i class="bi bi-cpu text-cyan"></i> ARABICA EXPLORER</div>
                 <div class="tech-font text-secondary" style="font-size: 0.7rem;">MAP VERSION 0.1 // ENCRYPTED</div>
             </div>
             <button class="btn btn-link text-secondary d-md-none" onclick="toggleSidebar()">
-                <i class="bi bi-x-lg" style="font-size: 1.5rem;"></i>
+                <i class="bi bi-x-lg" style="font-size: 1.8rem;"></i>
             </button>
         </div>
 
         <div class="controls-wrapper">
             <div class="position-relative mb-3">
-                <i class="bi bi-search search-icon"></i>
-                <input type="text" id="search" class="form-control cyber-input" placeholder="SEARCH ENCRYPTED DB..." onkeyup="handleInput()">
+                <i class="bi bi-search position-absolute text-secondary" style="left: 10px; top: 10px;"></i>
+                <input type="text" id="search" class="form-control cyber-input" placeholder="SEARCH DATABASE..." onkeyup="handleInput()">
             </div>
 
-            <!-- NEW FILTERS ROW -->
+            <!-- FILTERS -->
             <div class="row g-2 mb-3">
                 <div class="col-6">
                     <label class="tech-font text-secondary" style="font-size: 0.65rem;">CUP QUALITY</label>
-                    <select id="qualityFilter" class="form-select cyber-input" style="font-size: 0.8rem; padding: 5px 10px;" onchange="handleInput()">
+                    <select id="qualityFilter" class="form-select cyber-input" style="font-size: 0.8rem; padding: 8px;" onchange="handleInput()">
                         <option value="all">ANY TIER</option>
                         <option value="90">EXQUISITE (90+)</option>
                         <option value="85">EXCELLENT (85-89)</option>
@@ -460,7 +406,7 @@
                 </div>
                 <div class="col-6">
                     <label class="tech-font text-secondary" style="font-size: 0.65rem;">ALTITUDE</label>
-                    <select id="altFilter" class="form-select cyber-input" style="font-size: 0.8rem; padding: 5px 10px;" onchange="handleInput()">
+                    <select id="altFilter" class="form-select cyber-input" style="font-size: 0.8rem; padding: 8px;" onchange="handleInput()">
                         <option value="all">ANY ELEV.</option>
                         <option value="very_high">V. HIGH (>1500m)</option>
                         <option value="high">HIGH (1200-1500m)</option>
@@ -470,7 +416,6 @@
                 </div>
             </div>
 
-            <!-- CYBER SWITCH FOR VARIETIES -->
             <div class="cyber-switch">
                 <div class="d-flex align-items-center">
                     <i class="bi bi-diagram-3 text-secondary me-2"></i>
@@ -508,10 +453,10 @@
 
         <!-- VISUAL LEGEND -->
         <div class="map-legend-footer">
-            <span class="text-cyan">///</span> ANIMATED LINE INDICATES HISTORICAL MIGRATION PATH
+            <span class="text-cyan">///</span> MIGRATION PATH
         </div>
 
-        <!-- FLOATING INFO CARD -->
+        <!-- FLOATING INFO CARD (Bottom Sheet on Mobile) -->
         <div class="info-card" id="infoCard">
             <div class="card-header-custom">
                 <div>
@@ -523,50 +468,40 @@
             
             <div class="card-body-custom">
                 <p id="card-desc" style="color: #ccc; font-size: 0.95rem; line-height: 1.5;">
-                    Initialize selection from the sidebar to view genetic lineage, cup profile, and agronomic data.
+                    Initialize selection from the sidebar.
                 </p>
 
                 <!-- Stats Grid -->
-                <div class="mt-4" id="card-stats" style="display: none;">
+                <div class="mt-3" id="card-stats" style="display: none;">
                     
-                    <div class="stat-row">
-                        <span class="stat-label"><i class="bi bi-cup-hot me-2"></i>CUP QUALITY</span>
-                        <span class="stat-value text-cyan" id="stat-quality">HIGH</span>
+                    <div class="d-flex justify-content-between mb-1" style="font-size:0.9rem">
+                        <span class="text-secondary">CUP QUALITY</span>
+                        <span class="text-cyan fw-bold" id="stat-quality">HIGH</span>
                     </div>
-                    <div class="stat-explainer">Potential score on SCA 100pt scale.</div>
-                    <div class="progress-micro">
-                        <div class="progress-bar-micro" id="bar-quality" style="width: 0%; background-color: var(--neon-cyan);"></div>
-                    </div>
+                    <div class="progress-micro"><div class="progress-bar-micro" id="bar-quality" style="width: 0%; background: var(--neon-cyan);"></div></div>
 
-                    <!-- Market Volume -->
-                    <div class="stat-row">
-                        <span class="stat-label"><i class="bi bi-globe-americas me-2"></i>GLOBAL SHARE</span>
-                        <span class="stat-value text-gold" id="stat-market">NICHE</span>
+                    <div class="d-flex justify-content-between mb-1" style="font-size:0.9rem">
+                        <span class="text-secondary">GLOBAL SHARE</span>
+                        <span class="text-gold fw-bold" id="stat-market">NICHE</span>
                     </div>
-                    <div class="stat-explainer">Estimated % of global coffee trade.</div>
-                    <div class="progress-micro">
-                        <div class="progress-bar-micro" id="bar-market" style="width: 0%; background-color: #ffd700;"></div>
-                    </div>
+                    <div class="progress-micro"><div class="progress-bar-micro" id="bar-market" style="width: 0%; background: #ffd700;"></div></div>
 
-                    <div class="stat-row">
-                        <span class="stat-label"><i class="bi bi-shield-check me-2"></i>CLR IMMUNITY</span>
-                        <span class="stat-value text-pink" id="stat-resistance">LOW</span>
+                    <div class="d-flex justify-content-between mb-1" style="font-size:0.9rem">
+                        <span class="text-secondary">CLR IMMUNITY</span>
+                        <span class="text-pink fw-bold" id="stat-resistance">LOW</span>
                     </div>
-                    <div class="stat-explainer">Resistance to Hemileia vastatrix fungus.</div>
-                    <div class="progress-micro">
-                        <div class="progress-bar-micro" id="bar-resistance" style="width: 0%; background-color: var(--neon-pink);"></div>
-                    </div>
+                    <div class="progress-micro"><div class="progress-bar-micro" id="bar-resistance" style="width: 0%; background: var(--neon-pink);"></div></div>
 
                     <div class="row mt-3 g-2">
                         <div class="col-6">
                             <div class="p-2 rounded" style="background: rgba(255,255,255,0.05);">
-                                <div class="stat-label" style="font-size: 0.7rem;">OPTIMAL ALTITUDE</div>
+                                <div class="text-secondary" style="font-size: 0.65rem;">OPTIMAL ALTITUDE</div>
                                 <div class="text-white tech-font" id="stat-alt">1200m+</div>
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="p-2 rounded" style="background: rgba(255,255,255,0.05);">
-                                <div class="stat-label" style="font-size: 0.7rem;">YIELD POTENTIAL</div>
+                                <div class="text-secondary" style="font-size: 0.65rem;">YIELD POTENTIAL</div>
                                 <div class="text-white tech-font" id="stat-yield">MEDIUM</div>
                             </div>
                         </div>
@@ -583,14 +518,9 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-    /* --- SECURITY PROTOCOL --- 
-       Disabling Common Inspection Hotkeys 
-    */
     document.onkeydown = function(e) {
-        if(e.keyCode == 123) { return false; } // F12
-        if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)){ return false; } // Ctrl+Shift+I
-        if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)){ return false; } // Ctrl+Shift+J
-        if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)){ return false; } // Ctrl+U
+        if(e.keyCode == 123) { return false; } 
+        if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)){ return false; }
     }
 
     const coords = {
@@ -613,10 +543,6 @@
         "Hybrid": { color: "#0aff0a", id: "hybrid" }
     };
 
-    /* --- DATA OBFUSCATION LAYER ---
-       Data is stored as a packed matrix to prevent casual reading/copying.
-       Structure: [name, family, isMain(0/1), loc, path(piped), desc, quality, resistance, market, alt, yield]
-    */
     const _0xGenPool = [
         ["Typica","Typica",1,"Global","Ethiopia|Yemen|India|Java|Amsterdam|Martinique|Colombia","The original Arabica stock found in the Americas. Low yield, high quality.",90,10,60,"1000m+","Low"],
         ["Blue Mountain","Typica",1,"Jamaica","Ethiopia|Yemen|Martinique|Jamaica","Thrives in Jamaica's mist. Mild, lack of bitterness.",88,15,20,"1000m+","Low"],
@@ -671,7 +597,6 @@
         ["S795","Hybrid",0,"India","India","Cross of Kent and S288.",78,60,50,"800m+","High"]
     ];
 
-    // --- DECODER & AI DATA INJECTION ---
     let db = [];
     
     function unpackMatrix() {
@@ -680,13 +605,11 @@
             path: r[4].split('|'), desc: r[5],
             stats: { quality: r[6], resistance: r[7], market_vol: r[8], alt: r[9], yield: r[10] }
         }));
-        // Sort
         db.sort((a,b) => a.name.localeCompare(b.name));
-        injectMetadata(); // Make AI Readable
+        injectMetadata();
     }
 
     function injectMetadata() {
-        // Generates JSON-LD for AI Agents / Search Engines
         const ld = {
             "@context": "https://schema.org",
             "@type": "ItemList",
@@ -706,16 +629,12 @@
         script.type = 'application/ld+json';
         script.text = JSON.stringify(ld);
         document.head.appendChild(script);
-        console.log("NEO-ARABICA: AI Protocols Initialized.");
     }
-
-    // --- 3. UI LOGIC ---
 
     function buildAccordion(strainsToRender) {
         const container = document.getElementById('strainAccordion');
         container.innerHTML = "";
         
-        // Group data
         const grouped = { "Typica": [], "Bourbon": [], "Ethiopian": [], "Hybrid": [] };
         strainsToRender.forEach(s => { if(grouped[s.family]) grouped[s.family].push(s); });
 
@@ -754,7 +673,6 @@
     }
 
     function parseAlt(altStr) {
-        // Helper to convert "1500m+" or "Low" to a comparable number
         if (!altStr) return 0;
         if (altStr.includes("Low") || altStr.includes("Very Low")) return 500;
         return parseInt(altStr) || 0;
@@ -767,13 +685,9 @@
         const altFilter = document.getElementById('altFilter').value;
 
         const filtered = db.filter(s => {
-            // 1. Text Search
             const matchesSearch = s.name.toLowerCase().includes(term);
-            
-            // 2. Rare Toggle
             const matchesToggle = showExtended ? true : s.isMain;
-
-            // 3. Quality Filter
+            
             let matchesQuality = true;
             if (qualityFilter !== 'all') {
                 const q = s.stats.quality;
@@ -783,7 +697,6 @@
                 else if (qualityFilter === 'low') matchesQuality = q < 80;
             }
 
-            // 4. Altitude Filter
             let matchesAlt = true;
             if (altFilter !== 'all') {
                 const a = parseAlt(s.stats.alt);
@@ -807,7 +720,6 @@
         }
     }
 
-    // --- 4. MAP LOGIC ---
     const map = L.map('map', {
         zoomControl: false,
         attributionControl: false
@@ -816,7 +728,9 @@
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         maxZoom: 19
     }).addTo(map);
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
+    
+    // Zoom control at top right
+    L.control.zoom({ position: 'topright' }).addTo(map);
 
     const layers = {
         path: L.layerGroup().addTo(map),
@@ -827,9 +741,12 @@
         const strain = db.find(s => s.name === name);
         if(!strain) return;
 
-        const sidebar = document.getElementById('sidebar');
-        if(window.innerWidth < 768 && sidebar.classList.contains('active')) {
-            toggleSidebar();
+        // Mobile: Auto-Close Sidebar on Selection
+        if (window.innerWidth < 768) {
+            const sb = document.getElementById('sidebar');
+            if (sb.classList.contains('active') || sb.style.left === '0px') {
+                toggleSidebar();
+            }
         }
         
         document.querySelectorAll('.strain-btn').forEach(b => b.classList.remove('active-strain'));
@@ -886,9 +803,11 @@
         }
 
         if(latlngs.length > 0) {
+            // Adjust padding for mobile (bottom sheet)
+            const isMobile = window.innerWidth < 768;
             map.flyToBounds(polyline.getBounds(), { 
                 paddingTopLeft: [50, 50],
-                paddingBottomRight: [50, 350],
+                paddingBottomRight: isMobile ? [50, 200] : [50, 350],
                 maxZoom: 5, 
                 duration: 1.5 
             });
@@ -935,7 +854,11 @@
         document.getElementById('stat-yield').innerText = strain.stats.yield;
 
         card.classList.add('visible');
-        card.style.borderLeftColor = color;
+        if(window.innerWidth >= 768) {
+             card.style.borderLeftColor = color;
+        } else {
+             card.style.borderTopColor = color;
+        }
     }
 
     function closeCard() {
@@ -949,7 +872,7 @@
     }
 
     // Initialization
-    unpackMatrix(); // Decrypt/Unpack Data
+    unpackMatrix();
     document.getElementById('total-count').innerText = db.length;
     handleInput();
     setTimeout(() => selectStrain("Geisha (Gesha)"), 1000);
